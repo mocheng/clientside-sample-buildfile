@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="tutorialProject" default="prod" basedir="/Users/addy/buildTut/">
+<project name="tutorialProject" default="prod" basedir=".">
 
     <description>Client-side ANT build file example</description>
 
     <target name="-load.properties"
         description="Set properties for this build">
         <!--YUI Compressor location-->
-        <property name="yui.dir" value="${basedir}/yuicompressor/build/yuicompressor-2.4.2.jar"/>
+        <property name="yui-compressor.ver" value="2.4.7"/>
+        <property name="yui.dir" value="${basedir}/yuicompressor-${yui-compressor.ver}/build/yuicompressor-${yui-compressor.ver}.jar"/>
         <!--Source JS dir-->
-        <property name="src.js.dir" value="${basedir}/js"/>
+        <property name="src.js.dir" value="${basedir}/"/>
         <!--Source CSS dir-->
-        <property name="src.css.dir" value="${basedir}/css"/>
+        <property name="src.css.dir" value="${basedir}/"/>
         <!--Source Lint/Hint dir-->
-        <property name="jslint.js" value="${basedir}/lint/jshint.js"/>
+        <!-- The jshint-rhino.js should be concatenation of jshint.js and rhino.js from https://github.com/jshint/jshint/ -->
+        <property name="jslint.js" value="${basedir}/lint/jshint-rhino.js"/>
         <!--Rhino dir-->
         <property name="js.jar" value="${basedir}/lint/rhino/js.jar"/>
         <!--Output dir-->
@@ -22,8 +24,6 @@
         <property name="build.minor" value="1"/>
     </target>
 
-
-
     <!--Create build directories-->
     <target name="-init" depends="-load.properties"
         description="Create build directory structure">
@@ -31,74 +31,73 @@
         <tstamp>
             <format property="TODAY" pattern="EEE, d MMM yyyy HH:mm:ss Z"/>
         </tstamp>
-        
+
         <!--Delete previous build files-->
         <delete dir="${build.dir}"/>
-        
+
         <!--Recreate the build directories-->
         <mkdir dir="${build.dir}"/>
         <mkdir dir="${build.dir}/js"/>
         <mkdir dir="${build.dir}/css"/>
-        
+
         <!--Log the build timestamps to file-->
         <echo file="${build.dir}/js/tstamp.txt" append="false">Build Date: ${TODAY}</echo>
         <echo file="${build.dir}/css/tstamp.txt" append="false">Build Date: ${TODAY}</echo>
     </target>
 
 
-	 <!--JS Lint-->
-	<target depends="-init" name="-js.lint">
-	    <pathconvert pathsep=" " property="jsfiles">
-	        <fileset dir="${build.dir}/js/">
-	            <include name="*.js"/>
-	        </fileset>
-	    </pathconvert>
-	    <exec dir="${build.dir}/js/" executable="java" failonerror="true">
-	        <arg line="-jar ${js.jar} ${jslint.js} ${jsfiles}"/>
-	    </exec>
-	    <echo>Finished</echo>
-	</target>
-	
-	
+     <!--JS Lint-->
+    <target depends="-init" name="-js.lint">
+        <pathconvert pathsep=" " property="jsfiles">
+            <fileset dir="${src.js.dir}">
+                <include name="*.js"/>
+            </fileset>
+        </pathconvert>
+
+        <echo message="${jsfiles}"/>
+        <exec dir="${build.dir}/js/" executable="java" failonerror="true">
+            <arg line="-jar ${js.jar} ${jslint.js} ${jsfiles}"/>
+        </exec>
+        <echo>Finished</echo>
+    </target>
+
     <!--Concatenate JS files-->
-    <target name="-js.concatenate" depends="-js.lint" 
+    <target name="-js.concatenate" depends="-js.lint"
         description="Concatenates specified JavaScript files">
         <concat destfile="${build.dir}/js/concat.js">
-            <fileset 
+            <fileset
                 dir="${src.js.dir}"
-                includes="*.js" 
+                includes="*.js"
                 excludes="first.js, second.js"/>
         </concat>
         <echo>Finished</echo>
     </target>
 
-	    
-    
     <!--Concatenate CSS files-->
-    <target name="-css.concatenate" depends="-init" 
+    <target name="-css.concatenate" depends="-init"
         description="Concatenates specified CSS files">
         <concat destfile="${build.dir}/css/styles.css">
             <!--first.css and second.css should be first in the concatenated file-->
-            <filelist 
-                dir="${src.css.dir}" 
-                files="first.css, second.css"/>
-            <!--All of the other files in the directory should appear after.-->
-            <fileset 
+            <!--
+            <filelist
                 dir="${src.css.dir}"
-                includes="*.css" 
+                files="first.css, second.css"/>
+            -->
+            <!--All of the other files in the directory should appear after.-->
+            <fileset
+                dir="${src.css.dir}"
+                includes="*.css"
                 excludes="first.css, second.css"/>
         </concat>
         <echo>Finished</echo>
     </target>
 
-
-
     <!--Minify JS files-->
-    <target name="-js.minify" depends="-js.concatenate" 
+    <target name="-js.minify" depends="-js.concatenate"
         description="Minifies JavaScript files">
         <apply executable="java" parallel="false" dest="${build.dir}/js">
-            <fileset 
-                dir="${build.dir}/js" 
+            <fileset
+                dir="${build.dir}/js"
                 includes="concat.js"/>
             <arg line="-jar"/>
             <arg path="${yui.dir}"/>
@@ -110,14 +109,12 @@
         <echo>Finished</echo>
     </target>
 
-
-
     <!--Minify CSS files-->
-    <target name="-css.minify" depends="-css.concatenate" 
+    <target name="-css.minify" depends="-css.concatenate"
         description="Minifies CSS files">
         <apply executable="java" parallel="false"  dest="${build.dir}/css">
-            <fileset 
-                dir="${build.dir}/css" 
+            <fileset
+                dir="${build.dir}/css"
                 includes="styles.css"/>
             <arg line="-jar"/>
             <arg path="${yui.dir}"/>
@@ -130,18 +127,16 @@
         <echo>Finished</echo>
     </target>
 
-
     <!--Build-->
-    <target name="prod" 
+    <target name="prod"
         description="Builds project files for production use"
         depends="
-            -load.properties, 
-            -init, 
+            -load.properties,
+            -init,
             -js.concatenate,
-            -js.lint, 
-            -css.concatenate, 
-            -js.minify, 
+            -js.lint,
+            -css.concatenate,
+            -js.minify,
             -css.minify">
     </target>
 </project>
-
