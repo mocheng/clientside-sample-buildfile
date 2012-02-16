@@ -5,21 +5,27 @@
 
     <target name="-load.properties"
         description="Set properties for this build">
-        <!--YUI Compressor location-->
+        <!--YUI Compressor location. Download from http://yuilibrary.com/download/yuicompressor/ -->
         <property name="yui-compressor.ver" value="2.4.7"/>
         <property name="yui.dir" value="${basedir}/yuicompressor-${yui-compressor.ver}/build/yuicompressor-${yui-compressor.ver}.jar"/>
+
         <!--Source JS dir-->
         <property name="src.js.dir" value="${basedir}/"/>
+
         <!--Source CSS dir-->
         <property name="src.css.dir" value="${basedir}/"/>
+
         <!--Source Lint/Hint dir-->
         <!-- The jshint-rhino.js should be concatenation of jshint.js and rhino.js from https://github.com/jshint/jshint/ -->
         <property name="jslint.js" value="${basedir}/lint/jshint-rhino.js"/>
-        <!--Rhino dir-->
+
+        <!--Rhino dir. Download from http://www.mozilla.org/rhino/download.html -->
         <property name="js.jar" value="${basedir}/lint/rhino/js.jar"/>
+
         <!--Output dir-->
         <property name="build.dir" value="build"/>
-        <!--Build version information -->
+
+        <!--Build version information: -->
         <property name="build.major" value="1"/>
         <property name="build.minor" value="1"/>
     </target>
@@ -44,7 +50,6 @@
         <echo file="${build.dir}/js/tstamp.txt" append="false">Build Date: ${TODAY}</echo>
         <echo file="${build.dir}/css/tstamp.txt" append="false">Build Date: ${TODAY}</echo>
     </target>
-
 
      <!--JS Lint-->
     <target depends="-init" name="-js.lint">
